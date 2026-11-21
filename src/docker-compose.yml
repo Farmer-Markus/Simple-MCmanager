@@ -1,0 +1,29 @@
+services:
+  my-nice-server:
+    build:
+      context: .
+      args:
+        - JAVA_VERSION=25
+
+    image: minecraf-server:latest
+    container_name: my-nice-server
+    environment:
+      - MC_VERSION=26.3
+      - MC_SOFTWARE=paper
+      - INIT_MEM=128M
+      - MAX_MEM=4G
+      # Some additional java flags to append
+      # - JVM_FLAGS="-XX:+UseG1GC"
+      # Some additional server flags to append
+      - MC_FLAGS="--nogui"
+    working_dir: /server
+    volumes:
+      - ./my-nice-server:/server
+    ports:
+      - "25565:25565"
+    stdin_open: true
+    tty: true
+    restart: on-failure:20
+    # Can be used to start the server using custom command
+    # Default uses 'java -Xms{INIT_MEM} -Xmx{MAX_MEM} {JVM_FLAGS} -jar server-{MC_SOFTWARE}.jar {MC_FLAGS}'
+    # command: java -Xms2G -Xmx5G -XX:+UseG1GC -jar paper.jar nogui

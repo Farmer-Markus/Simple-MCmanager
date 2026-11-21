@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Made by Farmer_Markus
 
 MOJANG_MANIFEST="https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
 PAPMC_PROJECTS="https://fill.papermc.io/v3/projects"
@@ -8,7 +9,7 @@ FABMC_INSTALLERS="https://meta.fabricmc.net/v2/versions/installer"
 
 
 # Where to download which server software
-declare -A SOFT_VERSIONS=(
+declare -A SOFTWARES=(
     [vanilla]="mojang"
     [paper]="papermc"
     [folia]="papermc"
@@ -16,6 +17,7 @@ declare -A SOFT_VERSIONS=(
     [fabric]="fabricmc"
 )
 
+# Store results of functions
 result=
 
 # Allow to download non stable versions
@@ -24,20 +26,20 @@ nonStable=false
 function printHelp()
 {
     echo -e "\
-Usage: ./server.sh [OPTION]...
+Usage: ./server-manager.sh [OPTION]...
 Download minecraft server software.
 
 Examples:
-    ./server.sh -v 26.1 -o vanilla-26.1.jar                     # Download a 26.1 minecraft vanilla server and save it to ./vanilla-26.1.jar
-    ./server.sh -v 1.18 -s paper -o paper1.18.jar               # Download a 1.18 papermc server and save it to ./paper1.18.jar
-    ./server.sh -v 26.2 -s fabric --software-version 0.20.1     # Download a 26.2 fabric server with fabric version 0.20.1
-    ./server.sh -v 1.8 -o pvpserver.jar                         # Download a 1.8 vanilla server and save it to ./pvpserver.jar
+    ./server-manager.sh -v 26.1 -o vanilla-26.1.jar                     # Download a 26.1 minecraft vanilla server and save it to ./vanilla-26.1.jar
+    ./server-manager.sh -v 1.18 -s paper -o paper1.18.jar               # Download a 1.18 papermc server and save it to ./paper1.18.jar
+    ./server-manager.sh -v 26.2 -s fabric --software-version 0.20.1     # Download a 26.2 fabric server with fabric version 0.20.1
+    ./server-manager.sh -v 1.8 -o pvpserver.jar                         # Download a 1.8 vanilla server and save it to ./pvpserver.jar
 
 Options:
     -h, --help                                      Show this help menu
     -o, --out <file>                                Set file to download to
     -v, --version <version>                         Specify the minecraft version
-    -s, --software <software>                       Set server software eg. vanilla, paper, fabric etc.
+    -s, --software <software>                       Set server software (${!SOFTWARES[@]})
     --software-version <version>                    Set a specific software version eg. for paper
     --allow-unstable                                Allow unstable server eg. paper versions to be used
     "
@@ -218,16 +220,16 @@ function getDownloadLinkMojang()
     fi
 
     local downUrl=$(jq -r '.downloads.server.url' <<< $infoStruct)
-    local fileHash=$(jq -r '.downloads.server.sha1' <<< $infoStruct)
+    local fileHash=$(jq -r '.downloads.server-manager.sha1' <<< $infoStruct)
 
     result=($downUrl $fileHash "sha1")
 }
 
 # $1 : Minecraft version (required)
-# $2 : Server software (vanilla, paper) (default: vanilla)
-# $3 : Server software version (default: newest)
+# $2 : Server software (default: vanilla)
+# $3 : Server software version (default: latest)
 # $4 : Allow non-stable server softwares
-# result : (down-url, file-hash, hash-type(sha256, sha1))
+# result : (down-url, file-hash, hash-type(sha256, sha1, none))
 function getDownloadLink()
 {
     assert "[ ! -z $1 ]"
@@ -254,9 +256,10 @@ function getDownloadLink()
     fi
 
 
-    local source=${SOFT_VERSIONS[$soft]}
+    local source=${SOFTWARES[$soft]}
     if [[ -z $source ]]; then
         echo "Server software '$soft' not supported!"
+        echo "Use on of: '${!SOFTWARES[@]}'"
         exit 1
     fi
 
