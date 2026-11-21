@@ -2,3 +2,8 @@
 TODO:
 Add version "latest" to download latest mc version
 Add forge, neoforge, quilt etc.
+
+
+Build:
+
+	docker compose -f docker-compose.yml build
