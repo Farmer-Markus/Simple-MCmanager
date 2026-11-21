@@ -7,3 +7,11 @@ Add forge, neoforge, quilt etc.
 Build:
 
 	docker compose -f docker-compose.yml build
+	
+Only start specific service / server:
+
+	docker compose -f docker-compose.yml -d <service/server name> up
+	
+	
+Docker does not need to be installed systemwide. A local user installation will work but ports must be manually opened in firewall!
+
